@@ -17,4 +17,5 @@
 *back/
 *arch/
 *.vscode/
+*.egg-info/
 
