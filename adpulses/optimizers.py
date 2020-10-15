@@ -12,9 +12,10 @@ def arctanLBFGS(
         target: dict, cube: SpinCube, pulse: Pulse,
         fn_err: Callable[[Tensor, Tensor, Optional[Tensor]], Tensor],
         fn_pen: Callable[[Tensor], Tensor],
-        niter: int = 10, niter_gr: int = 2, niter_rf: int = 2,
-        eta: Number = 4., b1Map_: Optional[Tensor] = None, doRelax: bool = True
-        ) -> Tuple[Pulse, dict]:
+        niter: int = 8, niter_gr: int = 2, niter_rf: int = 2,
+        eta: Number = 4.,
+        b1Map_: Optional[Tensor] = None, b1Map: Optional[Tensor] = None,
+        quiet: bool = False, doRelax: bool = True) -> Tuple[Pulse, dict]:
     r"""Joint RF/GR optimization via direct arctan trick
 
     Usage:
@@ -39,25 +40,35 @@ def arctanLBFGS(
         - ``pulse``: mrphy.mojbs.Pulse, optimized pulse.
         - ``optInfos``: dict, optimization informations.
     """
-    # Set up: Interior mapping
-    tρ, θ = mrphy.utils.rf2tρθ(pulse.rf, pulse.rfmax)
-    tsl = mrphy.utils.s2ts(mrphy.utils.g2s(pulse.gr, pulse.dt), pulse.smax)
+    rfmax, smax = pulse.rfmax, pulse.smax
+    eta *= pulse.dt*1e6/4  # normalize eta by dt
+    assert ((b1Map_ is None) or (b1Map is None))
+    b1Map_ = (b1Map_ if b1Map is None else cube.extract(b1Map))
+    nc = (1 if b1Map_ is None else b1Map_.shape[3])
+    # eta /= nc
 
-    opt_rf = optim.LBFGS([tρ, θ], lr=3., max_iter=10, history_size=100,
+    # Set up: Interior mapping
+    tρ, θ = mrphy.utils.rf2tρθ(pulse.rf, rfmax)
+    tsl = mrphy.utils.s2ts(mrphy.utils.g2s(pulse.gr, pulse.dt), smax)
+
+    opt_rf = optim.LBFGS([tρ, θ], lr=3., max_iter=10, history_size=30,
                          tolerance_change=1e-4,
                          line_search_fn='strong_wolfe')
 
-    opt_sl = optim.LBFGS([tsl], lr=3., max_iter=20, history_size=100,
+    opt_sl = optim.LBFGS([tsl], lr=3., max_iter=40, history_size=60,
                          tolerance_change=1e-6,
                          line_search_fn='strong_wolfe')
 
     tρ.requires_grad = θ.requires_grad = tsl.requires_grad = True
 
     # Set up: optimizer
-    loss_hist = np.full((niter*(niter_gr+niter_rf),), np.nan)
-    Md_, w_ = target['d_'], target['weight_'].sqrt()  # (1, nM, xy), (1, nM)
+    length = 1+niter*(niter_gr+niter_rf)
+    time_hist = np.full((length,), np.nan)
+    loss_hist = np.full((length,), np.nan)
+    err_hist = np.full((length,), np.nan)
+    pen_hist = np.full((length,), np.nan)
 
-    rfmax, smax = pulse.rfmax, pulse.smax
+    Md_, w_ = target['d_'], target['weight_'].sqrt()  # (1, nM, xy), (1, nM)
 
     def fn_loss(cube, pulse):
         Mr_ = cube.applypulse(pulse, b1Map_=b1Map_, doRelax=doRelax)
@@ -66,11 +77,17 @@ def arctanLBFGS(
 
     log_col = '\n#iter\t ‖ elapsed time\t ‖ error\t ‖ penalty\t ‖ total loss'
 
-    def logger(i, t0, loss_err, loss_pen):
-        loss = loss_err + eta*loss_pen
+    def logger(i, t0, loss, loss_err, loss_pen):
         print("%i\t | %.1f  \t | %.3f\t | %.3f\t | %.3f" %
               (i, time()-t0, loss_err.item(), loss_pen.item(), loss.item()))
         return loss
+
+    loss_err, loss_pen = fn_loss(cube, pulse)
+    loss = loss_err + eta*loss_pen
+
+    logger(0, time(), loss, loss_err, loss_pen)
+    time_hist[0], loss_hist[0], err_hist[0], pen_hist[0] = (
+        0.0, loss.item(), loss_err.item(), loss_pen.item())
 
     # Optimization
     t0 = time()
@@ -98,9 +115,15 @@ def arctanLBFGS(
             opt_rf.step(closure)
 
             loss_err, loss_pen = fn_loss(cube, pulse)
-            loss = logger(i, t0, loss_err, loss_pen)
+            loss = loss_err + eta*loss_pen
 
-            loss_hist[i*(niter_gr+niter_rf)+log_ind] = loss.item()
+            if not quiet:
+                logger(i+1, t0, loss, loss_err, loss_pen)
+
+            ind = i*(niter_gr+niter_rf)+log_ind+1
+            time_hist[ind], loss_hist[ind], err_hist[ind], pen_hist[ind] = (
+                time()-t0, loss.item(), loss_err.item(), loss_pen.item())
+
             log_ind += 1
 
         print('gr-loop: ', niter_gr)
@@ -108,14 +131,25 @@ def arctanLBFGS(
             opt_sl.step(closure)
 
             loss_err, loss_pen = fn_loss(cube, pulse)
-            loss = logger(i, t0, loss_err, loss_pen)
+            loss = loss_err + eta*loss_pen
 
-            loss_hist[i*(niter_gr+niter_rf)+log_ind] = loss.item()
+            if not quiet:
+                logger(i+1, t0, loss, loss_err, loss_pen)
+
+            ind = i*(niter_gr+niter_rf)+log_ind+1
+            time_hist[ind], loss_hist[ind], err_hist[ind], pen_hist[ind] = (
+                time()-t0, loss.item(), loss_err.item(), loss_pen.item())
+
             log_ind += 1
 
     print('\n== Results: ==')
     print(log_col)
-    logger(i, t0, loss_err, loss_pen)
+    loss = loss_err + eta*loss_pen
 
-    optInfos = {'loss_hist': loss_hist}
+    logger(i+1, t0, loss, loss_err, loss_pen)
+
+    optInfos = {'time_hist': time_hist, 'loss_hist': loss_hist,
+                'err_hist': err_hist, 'pen_hist': pen_hist}
     return pulse, optInfos
+
+

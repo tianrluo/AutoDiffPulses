@@ -1,6 +1,9 @@
 # arctan.py
 
+import numpy as np
 import torch
+from torch import tensor
+
 import adpulses
 
 from adpulses import io, optimizers, metrics, penalties
@@ -18,21 +21,28 @@ if __name__ == "__main__":
 
     # %% load
     if gpuID == '-1':
-        dkw = {'device': torch.device('cpu'), 'dtype': torch.float32}
+        device, dtype = torch.device('cpu'), torch.float32
     else:
-        dkw = {'device': torch.device('cuda:'+gpuID), 'dtype': torch.float32}
+        device, dtype = torch.device('cuda:'+gpuID), torch.float32
 
-    target, cube, pulse, arg = io.m2p(m2pName, **dkw)
+    target, cube, pulse, arg = io.m2p(m2pName, device=device, dtype=dtype)
 
     def dflt_arg(k, v, fn):
         return (fn(k) if ((k in arg.keys()) and (arg[k].size > 0)) else v)
 
+    f_c2r_np = lambda x, a: np.stack((x.real, x.imag), axis=a)  # noqa:E731
+    f_t = (lambda x, device=device, dtype=dtype:
+                tensor(x[None, ...], device=device, dtype=dtype))  # noqa:E731
+
     arg['doRelax'] = dflt_arg('doRelax', True, lambda k: bool(arg[k].item()))
 
-    arg['b1Map_'] = dflt_arg('b1Map_', None,
-                             lambda k: f_tensor(f_c2r_np(arg[k], -2)))
+    b1Map = dflt_arg('b1Map', None, lambda k: f_t(f_c2r_np(arg[k], -2)))
+    b1Map_ = dflt_arg('b1Map_', None, lambda k: f_t(f_c2r_np(arg[k], -2)))
+    assert ((b1Map_ is None) or (b1Map is None))
 
-    arg['niter'] = dflt_arg('niter', 10, lambda k: arg[k].item())
+    arg['b1Map_'] = (b1Map_ if b1Map is None else cube.extract(b1Map))
+
+    arg['niter'] = dflt_arg('niter', 8, lambda k: arg[k].item())
     arg['niter_gr'] = dflt_arg('niter_gr', 2, lambda k: arg[k].item())
     arg['niter_rf'] = dflt_arg('niter_rf', 2, lambda k: arg[k].item())
 
@@ -57,4 +67,4 @@ if __name__ == "__main__":
                                              fn_err, fn_pen, eta=eta, **kw)
 
     # %% saving
-    io.p2m(p2mName, pulse, optInfos)
+    io.p2m(p2mName, pulse, {'optInfos': optInfos})

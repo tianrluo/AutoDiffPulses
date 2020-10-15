@@ -32,7 +32,7 @@ import attr.*
 
 % parse
 arg.b1Map = [];
-[arg.niter, arg.niter_gr, arg.niter_rf] = deal(10, 2, 2);
+[arg.niter, arg.niter_gr, arg.niter_rf] = deal(8, 2, 2);
 arg.err_meth = 'l2xy';
 [arg.pen_meth, arg.eta] = deal('l2', 4);
 arg.gpuID = 0;
@@ -75,7 +75,8 @@ if Err, error('python call failed!!!'); end
 mfile = matfile(p2mName);
 
 % may need some reshaping before assigning to mrphy.Pulse
-[pulse_st, optInfos] = deal(mfile.pulse_st, mfile.optInfos);
+[pulse_st, arg_p2m] = deal(mfile.pulse_st, mfile.arg);
+optInfos = arg_p2m.optInfos;
 pulse_st.rf = pulse_st.rf(1,:,:) + 1i*pulse_st.rf(2,:,:);
 pulse_o = copy(pulse_i);
 [pulse_o.rf, pulse_o.gr] = deal(double(pulse_st.rf), double(pulse_st.gr));
