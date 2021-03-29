@@ -51,6 +51,9 @@ def arctanLBFGS(
     tρ, θ = mrphy.utils.rf2tρθ(pulse.rf, rfmax)
     tsl = mrphy.utils.s2ts(mrphy.utils.g2s(pulse.gr, pulse.dt), smax)
 
+    # enforce contiguousness of optimization variables, o.w. LBFGS may fail
+    tρ, θ, tsl = tρ.contiguous(), θ.contiguous(), tsl.contiguous()
+
     opt_rf = optim.LBFGS([tρ, θ], lr=3., max_iter=10, history_size=30,
                          tolerance_change=1e-4,
                          line_search_fn='strong_wolfe')
