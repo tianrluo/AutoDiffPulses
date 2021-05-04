@@ -24,16 +24,17 @@ For the `interpT` feature, consider citing:
 @inproceedings{luo2021MultiScale,
   title={Multi-scale Accelerated Auto-differentiable Bloch-simulation based joint design of excitation RF and gradient waveforms},
   booktitle={ISMRM},
-  pages={0000},
+  pages={3958},
   author={Tianrui Luo and Douglas C. Noll and Jeffrey A. Fessler and Jon-Fredrik Nielsen},
   year={2021}
 }
 ```
 
 ## System Requirements:
-- Ubuntu 18.04, Python 3
+- Ubuntu 18.04, 20.04
+- Python 3
 
-The implementation may fail with other configurations.
+The implementation was not tested with other configurations.
 
 ## General comments
 
