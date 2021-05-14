@@ -6,10 +6,6 @@ cube = IniVar.cube;
 
 OV90(cube, IniVar.target_OV90, IniVar.pIni_OV90);
 
-% IV180(cube, IniVar.target_IV180, IniVar.pIni_IV180);
-
-% IV180M(cube, IniVar.target_IV180M, IniVar.pIni_IV180M);
-
 end
 
 function OV90(cube, target, pIni)
@@ -41,24 +37,6 @@ function OV90(cube, target, pIni)
   disp('OV90');
 
   keyboard
-end
-
-function IV180(cube, target, pIni)
-  pAD = adpulses.opt.parctanAD(target, cube, pIni, 'err_meth', 'l2z' ...
-                              , 'doClean',false, 'gpuID',3, 'nB',200);
-   
-  figure
-  plot_res(pIni, pAD, cube, target, 'z');
-  sgtitle('IV180');
-end
-
-function IV180M(cube, target, pIni)
-  pAD = adpulses.opt.parctanAD(target, cube, pIni, 'err_meth', 'l2z' ...
-                              , 'doClean',false, 'gpuID',3, 'nB',200);
- 
-  figure
-  plot_res(pIni, pAD, cube, target, 'z');
-  sgtitle('IV180M');
 end
 
 %% Utils
