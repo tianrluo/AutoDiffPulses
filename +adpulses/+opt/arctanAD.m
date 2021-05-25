@@ -15,6 +15,7 @@ function [pulse_o, optInfos] = arctanAD(target, cube, pulse_i, varargin)
 % - niter_rf (1,), dflt 2, #iteration for updating rf
 % - niter_gr (1,), dflt 2, #iteration for updating gr
 % - err_meth str:
+%   'l2': least square excitation error metric accounting for all M_{x,y,z};
 %   'l2xy': ordinary transversal least square excitation error metric;
 %   'ml2xy': transversal magnitude least square excitation error metric;
 %   'l2z': longitudinal least square.
@@ -43,7 +44,7 @@ arg = attrParser(arg, varargin);
 disp(['err_meth: ', arg.err_meth])
 
 [arg.err_meth, arg.pen_meth] = deal(lower(arg.err_meth), lower(arg.pen_meth));
-assert(ismember(arg.err_meth, {'null', 'l2xy', 'ml2xy', 'l2z'}))
+assert(ismember(arg.err_meth, {'null', 'l2', 'l2xy', 'ml2xy', 'l2z'}))
 assert(ismember(arg.pen_meth, {'null', 'l2'}))
 
 [m2pName, p2mName] = deal([arg.fName, '_m2p.mat'], [arg.fName, '_p2m.mat']);

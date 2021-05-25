@@ -52,7 +52,7 @@ if __name__ == "__main__":
     err_meth = dflt_arg('err_meth', 'l2xy', lambda k: arg[k].item())
     pen_meth = dflt_arg('pen_meth', 'l2', lambda k: arg[k].item())
 
-    err_hash = {'null': metrics.err_null,
+    err_hash = {'null': metrics.err_null, 'l2': metrics.err_l2,
                 'l2xy': metrics.err_l2xy, 'ml2xy': metrics.err_ml2xy,
                 'l2z': metrics.err_l2z}
     pen_hash = {'null': penalties.pen_null, 'l2': penalties.pen_l2}
