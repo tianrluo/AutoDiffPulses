@@ -1,22 +1,21 @@
 # Auto-Differentiation Based MRI Pulse Design
 
 Reference implementation of:\
-[Joint Design of RF and Gradient Waveforms via Auto-Differentiation for 3D Tailored Exitation in MRI](https://arxiv.org/abs/2008.10594)
-
-<!--\ doi: []())-->
+[Joint Design of RF and Gradient Waveforms via Auto-Differentiation for 3D Tailored Exitation in MRI](https://ieeexplore.ieee.org/document/9439482)\
+(arXiv: [https://arxiv.org/abs/2008.10594](https://arxiv.org/abs/2008.10594))
 
 cite as:
 
 ```bib
-@misc{luo2020joint,
-  title={Joint Design of RF and gradient waveforms via auto-differentiation for 3D tailored excitation in MRI},
-  author={Tianrui Luo and Douglas C. Noll and Jeffrey A. Fessler and Jon-Fredrik Nielsen},
-  year={2020},
-  eprint={2008.10594},
-  archivePrefix={arXiv},
-  primaryClass={eess.IV},
-  url={https://arxiv.org/abs/2008.10594}
-}
+@article{luo2021joint,
+  author={Luo, Tianrui and Noll, Douglas C. and Fessler, Jeffrey A. and Nielsen, Jon-Fredrik},
+  journal={IEEE Transactions on Medical Imaging}, 
+  title={Joint Design of RF and gradient waveforms via auto-differentiation for 3D tailored excitation in MRI}, 
+  year={2021},
+  volume={},
+  number={},
+  pages={1-1},
+  doi={10.1109/TMI.2021.3083104}}
 ```
 
 For the `interpT` feature, consider citing:
@@ -32,7 +31,7 @@ For the `interpT` feature, consider citing:
 
 ## System Requirements:
 - Ubuntu 18.04, 20.04
-- Python 3
+- Python 3.6, 3.7, 3.8
 
 The implementation was not tested with other configurations.
 
@@ -54,7 +53,7 @@ Future binary data files will be added to: <https://drive.google.com/drive/folde
 
 This work requries Python (`≥v3.5`), PyTorch (`≥v1.3`) with CUDA.
 
-- `MRphy`: Python, Github [link](https://github.com/tianrluo/MRphy.py) (`≥v0.1.5`).
+- `MRphy`: Python, Github [link](https://github.com/tianrluo/MRphy.py) (`≥v0.1.8`).
 - `+mrphy`: Matlab, Github [link](https://github.com/tianrluo/MRphy.mat).
 - `+attr`: Matlab, Github [link](https://github.com/fmrilab/attr.mat).
 

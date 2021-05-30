@@ -87,6 +87,11 @@ def m2p(m2pName: str,
     if 'arg' in mfile.keys():
         # %% `arg`: everything else
         arg = f_st2dic(mfile['arg'])
+        # handle single coil b1Map case, as matlab ignores dim of size 1
+        if 'b1Map' in arg.keys() and arg['b1Map'].ndim == cube.ndim-1:
+            arg['b1Map'] = arg['b1Map'][..., None]
+        if 'b1Map_' in arg.keys() and arg['b1Map_'].ndim == 1:
+            arg['b1Map_'] = arg['b1Map_'][..., None]
     else:
         arg = None
 
