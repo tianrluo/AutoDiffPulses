@@ -27,7 +27,7 @@ with open("README.md", "r") as h:
 
 setup(
     name="adpulses",
-    version="0.1.0",
+    version="0.2.2",
     author="Tianrui Luo",
     author_email="tianrluo@umich.edu",
     description="A Pytorch based tool for MR pulse design",

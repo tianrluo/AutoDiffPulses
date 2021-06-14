@@ -1,4 +1,4 @@
-function demo()
+function demo2()
 
 IniVar = matfile('./IniVars.mat');
 

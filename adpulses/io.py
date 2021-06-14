@@ -6,8 +6,6 @@ import torch
 from torch import tensor
 from mrphy.mobjs import SpinCube, Pulse
 
-from adpulses import metrics, penalties
-
 
 __all__ = ['m2p', 'p2m']
 
@@ -62,9 +60,22 @@ def m2p(m2pName: str,
     if 'target' in mfile.keys():
         tmp, target = f_st2dic(mfile['target']), {}
         # (1, nM, xyz); (1, nM)
-        target['d_'] = cube.extract(f_t(tmp['d'])) if cube else f_t(tmp['d'])
-        target['weight_'] = (cube.extract(f_t(tmp['weight'])) if cube
-                             else f_t(tmp['weight']))
+        if 'd_' in tmp.keys():
+            target['d_'] = tmp['d_']
+        elif 'd' in tmp.keys():
+            target['d_'] = (cube.extract(f_t(tmp['d'])) if cube
+                            else f_t(tmp['d']))
+        else:
+            raise KeyError('Missing desired profile in dict `target`')
+
+        if 'weight_' in tmp.keys():
+            target['weight_'] = tmp['weight_']
+        elif 'weight' in tmp.keys():
+            target['weight_'] = (cube.extract(f_t(tmp['weight'])) if cube
+                                 else f_t(tmp['weight']))
+        else:
+            raise KeyError('Missing weighting in dict `target`')
+
     else:
         target = None
 

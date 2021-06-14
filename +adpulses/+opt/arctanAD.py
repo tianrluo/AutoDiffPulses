@@ -4,8 +4,6 @@ import numpy as np
 import torch
 from torch import tensor
 
-import adpulses
-
 from adpulses import io, optimizers, metrics, penalties
 
 if __name__ == "__main__":
@@ -32,7 +30,7 @@ if __name__ == "__main__":
 
     f_c2r_np = lambda x, a: np.stack((x.real, x.imag), axis=a)  # noqa:E731
     f_t = (lambda x, device=device, dtype=dtype:
-                tensor(x[None, ...], device=device, dtype=dtype))  # noqa:E731
+           tensor(x[None, ...], device=device, dtype=dtype))  # noqa:E731
 
     arg['doRelax'] = dflt_arg('doRelax', True, lambda k: bool(arg[k].item()))
 

@@ -9,13 +9,14 @@ from mrphy.mobjs import SpinCube, Pulse
 
 
 def arctanLBFGS(
-        target: dict, cube: SpinCube, pulse: Pulse,
-        fn_err: Callable[[Tensor, Tensor, Optional[Tensor]], Tensor],
-        fn_pen: Callable[[Tensor], Tensor],
-        niter: int = 8, niter_gr: int = 2, niter_rf: int = 2,
-        eta: Number = 4.,
-        b1Map_: Optional[Tensor] = None, b1Map: Optional[Tensor] = None,
-        quiet: bool = False, doRelax: bool = True) -> Tuple[Pulse, dict]:
+    target: dict, cube: SpinCube, pulse: Pulse,
+    fn_err: Callable[[Tensor, Tensor, Optional[Tensor]], Tensor],
+    fn_pen: Callable[[Tensor], Tensor],
+    niter: int = 8, niter_gr: int = 2, niter_rf: int = 2,
+    eta: Number = 4.,
+    b1Map_: Optional[Tensor] = None, b1Map: Optional[Tensor] = None,
+    doQuiet: bool = False, doRelax: bool = True
+) -> Tuple[Pulse, dict]:
     r"""Joint RF/GR optimization via direct arctan trick
 
     Usage:
@@ -44,7 +45,8 @@ def arctanLBFGS(
     eta *= pulse.dt*1e6/4  # normalize eta by dt
     assert ((b1Map_ is None) or (b1Map is None))
     b1Map_ = (b1Map_ if b1Map is None else cube.extract(b1Map))
-    nc = (1 if b1Map_ is None else b1Map_.shape[3])
+    b1Map_ = b1Map_[..., None] if len(b1Map_.shape) == 3 else b1Map_
+    # nc = (1 if b1Map_ is None else b1Map_.shape[3])
     # eta /= nc
 
     # Set up: Interior mapping
@@ -120,7 +122,7 @@ def arctanLBFGS(
             loss_err, loss_pen = fn_loss(cube, pulse)
             loss = loss_err + eta*loss_pen
 
-            if not quiet:
+            if not doQuiet:
                 logger(i+1, t0, loss, loss_err, loss_pen)
 
             ind = i*(niter_gr+niter_rf)+log_ind+1
@@ -136,7 +138,7 @@ def arctanLBFGS(
             loss_err, loss_pen = fn_loss(cube, pulse)
             loss = loss_err + eta*loss_pen
 
-            if not quiet:
+            if not doQuiet:
                 logger(i+1, t0, loss, loss_err, loss_pen)
 
             ind = i*(niter_gr+niter_rf)+log_ind+1
@@ -151,8 +153,8 @@ def arctanLBFGS(
 
     logger(i+1, t0, loss, loss_err, loss_pen)
 
+    pulse.rf.detach_()
+    pulse.gr.detach_()
     optInfos = {'time_hist': time_hist, 'loss_hist': loss_hist,
                 'err_hist': err_hist, 'pen_hist': pen_hist}
     return pulse, optInfos
-
-
