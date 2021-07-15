@@ -10,7 +10,7 @@ from mrphy.mobjs import SpinCube, Pulse
 
 def arctanLBFGS(
     target: dict, cube: SpinCube, pulse: Pulse,
-    fn_err: Callable[[Tensor, Tensor, Optional[Tensor]], Tensor],
+    fn_err: Callable[[Tensor, Tensor, Tensor, Optional[Tensor]], Tensor],
     fn_pen: Callable[[Tensor], Tensor],
     niter: int = 8, niter_gr: int = 2, niter_rf: int = 2,
     eta: Number = 4.,

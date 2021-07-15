@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Union
 from torch import Tensor
 
 
@@ -13,6 +13,28 @@ def err_null(Mr_: Tensor, Md_: Tensor, w_: Optional[Tensor] = None) -> Tensor:
     - `err` (1,)
     """
     return Mr_.new_zeros([])
+
+
+def err_l2_(
+    Mr_: Tensor,
+    Md_: Tensor,
+    idx: Union[int, slice, list] = slice(None),
+    w_: Optional[Tensor] = None
+) -> Tensor:
+    """
+    *INPUTS*
+    - `Mr_` (1, nM, xyz)
+    - `Md_` (1, nM, xyz)
+    - `idx` index for slicing `(Mr_ - Md_)`, e.g.:
+      `x[..., 2:]` equivs `x[..., slice(2, None)]`.
+    *OPTIONALS*
+    - `w_`  (1, nM)
+    *OUTPUTS*
+    - `err` (1,)
+    """
+    Me_ = (Mr_ - Md_)[..., sl]
+    err = (Me_ if w_ is None else Me_*w_[..., None]).norm()**2
+    pass
 
 
 def err_l2(Mr_: Tensor, Md_: Tensor, w_: Optional[Tensor] = None) -> Tensor:
