@@ -46,8 +46,27 @@ def adiabatic_opt(
 ):
     target, cube, pIni, b1map = init(flim, b1lim, nf, nb, b1max, device, dtype)
 
-    fn_err = metrics.err_l2z
-    fn_pen = penalties.pen_null
+    err_meth, pen_meth = 'l2z', 'null'
+
+    idx_hash = {'': slice(None), 'xyz': slice(None),
+                'x':  [0],    'y': [1],     'z': [2],
+                'xy': [0, 1], 'yz': [1, 2], 'xz': [0, 2]}
+
+    if err_meth == 'null':
+        fn_err = (lambda Mr_, Md_, w_:
+                  metrics.err_null(Mr_, Md_, [], w_))  # NOQA: E731
+    else:
+        name, xyz = err_meth.split('2')
+        if name == 'l':
+            fn = metrics.err_l2_
+        elif name == 'ml':
+            fn = metrics.err_ml2_
+
+        fn_err = (lambda Mr_, Md_, w_:
+                  fn(Mr_, Md_, idx_hash[xyz], w_))  # NOQA: E731
+
+    pen_hash = {'null': penalties.pen_null, 'l2': penalties.pen_l2}
+    fn_pen = pen_hash[pen_meth]
 
     pIni0 = pIni
     for _ in range(1):

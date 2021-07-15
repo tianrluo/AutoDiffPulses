@@ -1,8 +1,13 @@
-from typing import Optional
+from typing import Optional, Union
 from torch import Tensor
 
 
-def err_null(Mr_: Tensor, Md_: Tensor, w_: Optional[Tensor] = None) -> Tensor:
+def err_null(
+    Mr_: Tensor,
+    Md_: Tensor,
+    idx: Union[slice, list] = slice(None),
+    w_: Optional[Tensor] = None
+) -> Tensor:
     """
     *INPUTS*
     - `Mr_` (1, nM, xyz)
@@ -15,61 +20,45 @@ def err_null(Mr_: Tensor, Md_: Tensor, w_: Optional[Tensor] = None) -> Tensor:
     return Mr_.new_zeros([])
 
 
-def err_l2(Mr_: Tensor, Md_: Tensor, w_: Optional[Tensor] = None) -> Tensor:
+def err_l2_(
+    Mr_: Tensor,
+    Md_: Tensor,
+    idx: Union[slice, list] = slice(None),
+    w_: Optional[Tensor] = None
+) -> Tensor:
     """
     *INPUTS*
     - `Mr_` (1, nM, xyz)
     - `Md_` (1, nM, xyz)
     *OPTIONALS*
+    - `idx` indices for slicing `(Mr_ - Md_)`, e.g.:
+      `x[..., 1:] is x[..., slice(1, None)] is x[..., [1,2]]`.
     - `w_`  (1, nM)
     *OUTPUTS*
     - `err` (1,)
     """
-    Me_ = (Mr_ - Md_)
+    Me_ = (Mr_ - Md_)[..., idx]
     err = (Me_ if w_ is None else Me_*w_[..., None]).norm()**2
     return err
 
 
-def err_l2z(Mr_: Tensor, Md_: Tensor, w_: Optional[Tensor] = None) -> Tensor:
+def err_ml2_(
+    Mr_: Tensor,
+    Md_: Tensor,
+    idx: Union[slice, list] = slice(None),
+    w_: Optional[Tensor] = None
+) -> Tensor:
     """
     *INPUTS*
     - `Mr_` (1, nM, xyz)
     - `Md_` (1, nM, xyz)
     *OPTIONALS*
+    - `idx` indices for slicing `(Mr_ - Md_)`, e.g.:
+      `x[..., 1:] is x[..., slice(1, None)] is x[..., [1,2]]`.
     - `w_`  (1, nM)
     *OUTPUTS*
     - `err` (1,)
     """
-    Me_ = (Mr_[..., 2] - Md_[..., 2])  # (1, nM)
-    err = (Me_ if w_ is None else Me_*w_).norm()**2
-    return err
-
-
-def err_l2xy(Mr_: Tensor, Md_: Tensor, w_: Optional[Tensor] = None) -> Tensor:
-    """
-    *INPUTS*
-    - `Mr_` (1, nM, xyz)
-    - `Md_` (1, nM, xyz)
-    *OPTIONALS*
-    - `w_`  (1, nM)
-    *OUTPUTS*
-    - `err` (1,)
-    """
-    Me_ = (Mr_[..., :2] - Md_[..., :2])
+    Me_ = Mr_[..., idx].norm(dim=-1) - Md_[..., idx].norm(dim=-1)
     err = (Me_ if w_ is None else Me_*w_[..., None]).norm()**2
-    return err
-
-
-def err_ml2xy(Mr_: Tensor, Md_: Tensor, w_: Optional[Tensor] = None) -> Tensor:
-    """
-    *INPUTS*
-    - `Mr_` (1, nM, xyz)
-    - `Md_` (1, nM, xyz)
-    *OPTIONALS*
-    - `w_`  (1, nM)
-    *OUTPUTS*
-    - `err` (1,)
-    """
-    Me_ = Mr_[..., :2].norm(dim=-1) - Md_[..., :2].norm(dim=-1)
-    err = (Me_ if w_ is None else Me_*w_).norm()**2
     return err

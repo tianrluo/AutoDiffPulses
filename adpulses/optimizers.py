@@ -32,6 +32,10 @@ def arctanLBFGS(
         - ``cube``: mrphy.mobjs.SpinCube.
         - ``pulse``: mrphy.mobjs.Pulse.
         - ``fn_err``: error metric function. See :mod:`~adpulses.metrics`.
+          It shall work as ``err = fn_err(Mr_, Md_, w_)``.
+          Note that `arctanLBFGS` does not pass `idx` as wanted in \
+          :mod:`~adpulses.metrics` to ``fn_err``.
+          User needs to wrap it themself.
         - ``fn_pen``: penalty function. See :mod:`~adpulses.penalties`.
         - ``fn_rfsyn``: ``{tρ, lρ}``, ``θ`` rf synthesizer.
         - ``fn_rfdec``: ``{tρ, lρ}``, ``θ`` rf decomposer.
