@@ -74,17 +74,21 @@ def arctanLBFGS(
     pen_hist = np.full((length,), np.nan)
 
     Md_, w_ = target['d_'], target['weight_'].sqrt()  # (1, nM, xy), (1, nM)
+    nM = w_.numel()
 
     def fn_loss(cube, pulse):
         Mr_ = cube.applypulse(pulse, b1Map_=b1Map_, doRelax=doRelax)
         loss_err, loss_pen = fn_err(Mr_, Md_, w_=w_), fn_pen(pulse.rf)
         return loss_err, loss_pen
 
-    log_col = '\n#iter\t ‖ elapsed time\t ‖ error\t ‖ penalty\t ‖ total loss'
+    log_col = ('\n#iter\t ‖ elapsed time\t ‖ error\t ‖ penalty\t ‖'
+               ' total loss\t ‖ avg loss')
 
-    def logger(i, t0, loss, loss_err, loss_pen):
-        print("%i\t | %.1f  \t | %.3f\t | %.3f\t | %.3f" %
-              (i, time()-t0, loss_err.item(), loss_pen.item(), loss.item()))
+    def logger(i, t0, loss, err, pen):
+        e, p, lo = err.item(), pen.item(), loss.item()
+        msg = (f'{i}\t | {time()-t0:.3f}\t | {e:.3f}\t | {p:.3f}\t | '
+               f'{lo:.3f}\t | {lo/nM:.3f}')
+        print(msg)
         return loss
 
     loss_err, loss_pen = fn_loss(cube, pulse)
