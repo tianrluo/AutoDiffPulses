@@ -6,12 +6,15 @@ import numpy as np
 from torch import optim, Tensor
 import mrphy
 from mrphy.mobjs import SpinCube, Pulse
+from mrphy.utils import tρθ2rf, lρθ2rf, rf2tρθ, rf2lρθ
 
 
 def arctanLBFGS(
     target: dict, cube: SpinCube, pulse: Pulse,
     fn_err: Callable[[Tensor, Tensor, Optional[Tensor]], Tensor],
     fn_pen: Callable[[Tensor], Tensor],
+    fn_rfsyn: Callable[[Tensor, Tensor, Tensor], Tensor] = tρθ2rf,
+    fn_rfdec: Callable[[Tensor, Tensor], Tuple[Tensor, Tensor]] = rf2tρθ,
     niter: int = 8, niter_gr: int = 2, niter_rf: int = 2,
     eta: Number = 4.,
     b1Map_: Optional[Tensor] = None, b1Map: Optional[Tensor] = None,
@@ -30,6 +33,8 @@ def arctanLBFGS(
         - ``pulse``: mrphy.mobjs.Pulse.
         - ``fn_err``: error metric function. See :mod:`~adpulses.metrics`.
         - ``fn_pen``: penalty function. See :mod:`~adpulses.penalties`.
+        - ``fn_rfsyn``: ``{tρ, lρ}``, ``θ`` rf synthesizer.
+        - ``fn_rfdec``: ``{tρ, lρ}``, ``θ`` rf decomposer.
     Optionals:
         - ``niter``: int, number of iterations.
         - ``niter_gr``: int, number of LBFGS iters for updating *gradients*.
@@ -40,6 +45,11 @@ def arctanLBFGS(
     Outputs:
         - ``pulse``: mrphy.mojbs.Pulse, optimized pulse.
         - ``optInfos``: dict, optimization informations.
+
+    Notes:
+        The returned `pulse.rf` is synthesized from `{tρ, lρ}`, `θ` using
+        `mrphy.utils.{tρθ2rf, lρθ2rf}`, instead of the input `fn_rfsyn`, so one
+        can retrieve the optimized `{tρ, lρ}` and `θ` if needed.
     """
     rfmax, smax = pulse.rfmax, pulse.smax
     eta *= pulse.dt*1e6/4  # normalize eta by dt
@@ -50,13 +60,15 @@ def arctanLBFGS(
     # eta /= nc
 
     # Set up: Interior mapping
-    tρ, θ = mrphy.utils.rf2tρθ(pulse.rf, rfmax)
+    assert(fn_rfdec in (rf2tρθ, rf2lρθ))  # only two mappings are allowed yet.
+
+    _ρ, θ = fn_rfdec(pulse.rf, rfmax)
     tsl = mrphy.utils.s2ts(mrphy.utils.g2s(pulse.gr, pulse.dt), smax)
 
     # enforce contiguousness of optimization variables, o.w. LBFGS may fail
-    tρ, θ, tsl = tρ.contiguous(), θ.contiguous(), tsl.contiguous()
+    _ρ, θ, tsl = _ρ.contiguous(), θ.contiguous(), tsl.contiguous()
 
-    opt_rf = optim.LBFGS([tρ, θ], lr=3., max_iter=10, history_size=30,
+    opt_rf = optim.LBFGS([_ρ, θ], lr=3., max_iter=10, history_size=20,
                          tolerance_change=1e-4,
                          line_search_fn='strong_wolfe')
 
@@ -64,7 +76,7 @@ def arctanLBFGS(
                          tolerance_change=1e-6,
                          line_search_fn='strong_wolfe')
 
-    tρ.requires_grad = θ.requires_grad = tsl.requires_grad = True
+    _ρ.requires_grad = θ.requires_grad = tsl.requires_grad = True
 
     # Set up: optimizer
     length = 1+niter*(niter_gr+niter_rf)
@@ -111,7 +123,7 @@ def arctanLBFGS(
             opt_rf.zero_grad()
             opt_sl.zero_grad()
 
-            pulse.rf = mrphy.utils.tρθ2rf(tρ, θ, rfmax)
+            pulse.rf = fn_rfsyn(_ρ, θ, rfmax)
             pulse.gr = mrphy.utils.s2g(mrphy.utils.ts2s(tsl, smax), pulse.dt)
 
             loss_err, loss_pen = fn_loss(cube, pulse)
@@ -157,7 +169,8 @@ def arctanLBFGS(
 
     logger(i+1, t0, loss, loss_err, loss_pen)
 
-    pulse.rf.detach_()
+    fn_arfdec = tρθ2rf if fn_rfdec is rf2tρθ else lρθ2rf  # inv of rfdec
+    pulse.rf = fn_arfdec(_ρ.detach_(), θ.detach_(), rfmax)
     pulse.gr.detach_()
     optInfos = {'time_hist': time_hist, 'loss_hist': loss_hist,
                 'err_hist': err_hist, 'pen_hist': pen_hist}
