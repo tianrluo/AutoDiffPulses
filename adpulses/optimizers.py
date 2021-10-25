@@ -86,8 +86,8 @@ def arctanLBFGS(
 
     def logger(i, t0, loss, err, pen):
         e, p, lo = err.item(), pen.item(), loss.item()
-        msg = (f'{i}\t | {time()-t0:.3f}\t | {e:.3f}\t | {p:.3f}\t | '
-               f'{lo:.3f}\t | {lo/nM:.3f}')
+        msg = (f'{i}\t | {time()-t0:.3f}\t | {e:.3e}\t | {p:.3e}\t | '
+               f'{lo:.3e}\t | {lo/nM:.3e}')
         print(msg)
         return loss
 
