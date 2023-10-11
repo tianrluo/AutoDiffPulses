@@ -53,8 +53,7 @@ Future binary data files will be added to: <https://drive.google.com/drive/folde
 
 This work requries Python (`≥v3.5`), PyTorch (`≥v1.3`) with CUDA.
 
-- `MRphy`: Python, Github [link](https://github.com/tianrluo/MRphy.py) (`≥v0.1.8`).
-- 'MRphy': Python, Github [link](https://github.com/YongliHe23/MRphy.py)
+- `MRphy`: Python, Github [link](https://github.com/YongliHe23/MRphy.py)
 - `+mrphy`: Matlab, Github [link](https://github.com/tianrluo/MRphy.mat).
 - `+attr`: Matlab, Github [link](https://github.com/fmrilab/attr.mat).
 
