@@ -84,8 +84,8 @@ def m2p(m2pName: str,
         tmp, pulse_d = f_st2dic(mfile['pulse_st']), {}
         pulse_d['rf'] = f_t(f_c2r_np(tmp['rf'], 1)[0, ...])  # (1, xy, nT)
         pulse_d['gr'] = f_t(tmp['gr'])
-        pulse_d['gmax'] = f_t(tmp['gmax'].astype(np.float).flatten())
-        pulse_d['smax'] = f_t(tmp['smax'].astype(np.float).flatten())
+        pulse_d['gmax'] = f_t(tmp['gmax'].astype(float).flatten())
+        pulse_d['smax'] = f_t(tmp['smax'].astype(float).flatten())
         pulse_d['rfmax'] = f_t(tmp['rfmax'].flatten())
 
         # dt should have dim `()` ⊻ `(1 ⊻ N,)`
