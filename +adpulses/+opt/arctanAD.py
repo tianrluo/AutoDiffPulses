@@ -57,9 +57,12 @@ if __name__ == "__main__":
 
     fn_err, fn_pen = err_hash[err_meth], pen_hash[pen_meth]
 
+    doQuiet = dflt_arg('doQuiet', False, lambda k: bool(arg[k].item()))
+
     # %% pulse design
     kw = {k: arg[k] for k in ('b1Map_', 'niter', 'niter_gr', 'niter_rf',
                               'doRelax')}
+    kw.update({'doQuiet': doQuiet})
 
     pulse, optInfos = optimizers.arctanLBFGS(target, cube, pulse,
                                              fn_err, fn_pen, eta=eta, **kw)

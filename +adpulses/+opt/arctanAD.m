@@ -26,6 +26,7 @@ function [pulse_o, optInfos] = arctanAD(target, cube, pulse_i, varargin)
 %   keyword `lambda` is occupied in python, to be consistent, use η.
 % - gpuID (1,) which GPU to run the pulse design. If `-1`, use CPU.
 % - doRelax[T/f], allow spins to relax during simulation.
+% - doQuiet [T/f], suppress per-step optimizer log output.
 % - doClean [T/f], remove temporary files at finish.
 % - fName dflt 'arctanAD', name of the temporary files.
 
@@ -37,7 +38,8 @@ arg.b1Map = [];
 arg.err_meth = 'l2xy';
 [arg.pen_meth, arg.eta] = deal('l2', 4);
 arg.gpuID = 0;
-[arg.doRelax, arg.doClean] = deal(true, true);
+[arg.doRelax, arg.doQuiet] = deal(true, false);
+[arg.doClean] = deal(true);
 arg.fName = 'adpulses_opt_arctanAD';
 
 arg = attrParser(arg, varargin);
@@ -64,7 +66,8 @@ save(m2pName, '-v7', 'target', 'cube_st', 'pulse_st', 'arg')
 [p, ~, ~] = fileparts(mfilename('fullpath')); % .m/.py must be in the same path.
 pyfile = [p, '/arctanAD.py'];
 
-cmd = ['python ', pyfile, ' ', m2pName, ' ', p2mName, ' ', num2str(gpuID)];
+pyExec = char(pyenv().Executable);
+cmd = [pyExec, ' ', pyfile, ' ', m2pName, ' ', p2mName, ' ', num2str(gpuID)];
 Err = system(cmd);  % python call
 if Err, error('python call failed!!!'); end
 
