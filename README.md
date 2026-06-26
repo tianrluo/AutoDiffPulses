@@ -9,8 +9,8 @@ cite as:
 ```bib
 @article{luo2021joint,
   author={Luo, Tianrui and Noll, Douglas C. and Fessler, Jeffrey A. and Nielsen, Jon-Fredrik},
-  journal={IEEE Transactions on Medical Imaging}, 
-  title={Joint Design of RF and gradient waveforms via auto-differentiation for 3D tailored excitation in MRI}, 
+  journal={IEEE Transactions on Medical Imaging},
+  title={Joint Design of RF and gradient waveforms via auto-differentiation for 3D tailored excitation in MRI},
   year={2021},
   volume={},
   number={},
@@ -29,11 +29,23 @@ For the `interpT` feature, consider citing:
 }
 ```
 
-## System Requirements:
-- Ubuntu 18.04, 20.04
-- Python 3.6, 3.7, 3.8
+## Steady-state sequence optimization
 
-The implementation was not tested with other configurations.
+Besides regular tailored-excitation design, the pulse can be optimized against
+the steady-state magnetization of an SPGR
+sequence. Use `adpulses.optimizers.arctanLBFGS_spgr` (Python) or
+`adpulses.opt.arctanAD_spgr` (MATLAB) — the steady-state counterparts of
+`arctanLBFGS` / `adpulses.opt.arctanAD`. `demo/demo_ss.m` gives a worked
+comparison of a regular design against a steady-state design.
+
+This feature accompanies a technical note currently under review at
+*Magnetic Resonance in Medicine*; a citation will be added once available.
+
+## System Requirements:
+- Python `≥3.8`.
+
+Tested on Ubuntu 18.04 / 20.04; other operating systems are untested but not
+explicitly excluded.
 
 ## General comments
 
@@ -41,21 +53,34 @@ The implementation was not tested with other configurations.
 For the python part, in your command line, navigate to the repo's root directory, type:
 
 ```sh
-pip install .
+pip install -e .
 ```
 
-Demos are provided in `./demo`.
-
-This repo has included binary test data files for basic accessibility in certain regions.\
-Future binary data files will be added to: <https://drive.google.com/drive/folders/1EyKhA_d74OC4KADMuTd1kRTEMoVqWdIY>.
+Demos are provided in `./demo`. In particular, `demo/demo_ss.m` uses the
+included example dataset (`demo/IniVars.mat`) to compare a regular design
+against a steady-state design under steady-state Bloch simulation.
 
 ## Dependencies
 
-This work requries Python (`≥v3.5`), PyTorch (`≥v1.3`) with CUDA.
+This work requires Python (`≥v3.8`) and PyTorch (`≥v1.6`).
 
-- `MRphy`: Python, Github [link](https://github.com/tianrluo/MRphy.py) (`≥v0.1.8`).
-- `+mrphy`: Matlab, Github [link](https://github.com/tianrluo/MRphy.mat).
-- `+attr`: Matlab, Github [link](https://github.com/fmrilab/attr.mat).
+### Python
+`pip install -e .` (see above) installs all Python dependencies, including the
+steady-state-enabled MRphy.py (pinned in `setup.py`):
 
-Other Python dependencies include:\
-`scipy`, `numpy`, `PyTorch`.
+- `mrphy`: [tianrluo/MRphy.py](https://github.com/tianrluo/MRphy.py.git) (`≥v0.2.1`) — with steady-state (SPGR) Bloch simulation support (`mrphy.steady_state.spgr`).
+
+Other Python dependencies (`numpy`, `scipy`, `torch`) are installed automatically.
+
+### MATLAB
+`setup_AutoDiffPulses.m` bootstraps the MATLAB dependencies automatically: it
+clones the packages below into `./matlab_deps` (git-ignored) at the pinned
+commits, compiles the C Bloch simulator (`mex blochcim.c`), and adds them to the
+path. This requires `git` on the system `PATH`. To force a fresh checkout,
+delete `./matlab_deps` and re-run the script.
+
+- `+mrphy`: [tianrluo/MRphy.mat](https://github.com/tianrluo/MRphy.mat.git) — the MATLAB counterpart, extended with steady-state Bloch simulation support.
+- `+attr`: [fmrilab/attr.mat](https://github.com/fmrilab/attr.mat).
+
+MATLAB must also be configured (via `pyenv`) to use a Python environment that
+has the `mrphy` installation described above.
