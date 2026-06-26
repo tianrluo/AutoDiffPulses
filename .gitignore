@@ -19,3 +19,8 @@
 *.vscode/
 *.egg-info/
 
+examples_matlab/
++attr/
+build/
+dist/
+matlab_deps/
