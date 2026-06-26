@@ -1,4 +1,6 @@
-# arctan.py
+# arctanAD_spgr.py
+# Steady-state (SPGR) counterpart of arctanAD.py: drives
+# adpulses.optimizers.arctanLBFGS_spgr instead of arctanLBFGS.
 
 import numpy as np
 import torch
@@ -59,13 +61,22 @@ if __name__ == "__main__":
 
     doQuiet = dflt_arg('doQuiet', False, lambda k: bool(arg[k].item()))
 
+    # steady-state (SPGR) specific
+    TR = dflt_arg('TR', None, lambda k: float(arg[k].item()))
+    alpha = dflt_arg('alpha', None, lambda k: float(arg[k].item()))
+
     # %% pulse design
     kw = {k: arg[k] for k in ('b1Map_', 'niter', 'niter_gr', 'niter_rf',
                               'doRelax')}
     kw.update({'doQuiet': doQuiet})
+    # forward TR/alpha only when provided; else use arctanLBFGS_spgr defaults
+    if TR is not None:
+        kw['TR'] = TR
+    if alpha is not None:
+        kw['alpha'] = alpha
 
-    pulse, optInfos = optimizers.arctanLBFGS(target, cube, pulse,
-                                             fn_err, fn_pen, eta=eta, **kw)
+    pulse, optInfos = optimizers.arctanLBFGS_spgr(target, cube, pulse,
+                                                  fn_err, fn_pen, eta=eta, **kw)
 
     # %% saving
     io.p2m(p2mName, pulse, {'optInfos': optInfos})

@@ -1,7 +1,11 @@
-function [pulse_o, optInfos] = arctanAD(target, cube, pulse_i, varargin)
+function [pulse_o, optInfos] = arctanAD_spgr(target, cube, pulse_i, varargin)
+% Steady-state (SPGR) counterpart of `arctanAD`. Drives the steady-state
+% optimizer `adpulses.optimizers.arctanLBFGS_spgr` (via `arctanAD_spgr.py`),
+% optimizing against the steady-state magnetization of an
+% `[beta - alpha - readout] x N` SPGR sequence.
+%
 % This fn nastily relies on file save/read to pass variables to python calls.
 % Blame Matlab/Python poor interoperability.
-% This function is basically a python function wrapper.
 % The python part requires `scipy`, `mrphy` and `torch` (with CUDA).
 %INPUTS
 % - target (1,) structure:
@@ -27,8 +31,10 @@ function [pulse_o, optInfos] = arctanAD(target, cube, pulse_i, varargin)
 % - gpuID (1,) which GPU to run the pulse design. If `-1`, use CPU.
 % - doRelax[T/f], allow spins to relax during simulation.
 % - doQuiet [T/f], suppress per-step optimizer log output.
+% - TR (1,) s, repetition time. Dflt 55e-3 if [].
+% - alpha (1,) deg, flip angle of tip-down pulse. Dflt 0 if [].
 % - doClean [T/f], remove temporary files at finish.
-% - fName dflt 'arctanAD', name of the temporary files.
+% - fName dflt 'arctanAD_spgr', name of the temporary files.
 
 import attr.*
 
@@ -39,8 +45,9 @@ arg.err_meth = 'l2xy';
 [arg.pen_meth, arg.eta] = deal('l2', 4);
 arg.gpuID = 0;
 [arg.doRelax, arg.doQuiet] = deal(true, false);
+[arg.TR, arg.alpha] = deal([], []);
 [arg.doClean] = deal(true);
-arg.fName = 'adpulses_opt_arctanAD';
+arg.fName = 'adpulses_opt_arctanAD_spgr';
 
 arg = attrParser(arg, varargin);
 disp(['err_meth: ', arg.err_meth])
@@ -64,7 +71,7 @@ end
 save(m2pName, '-v7', 'target', 'cube_st', 'pulse_st', 'arg')
 
 [p, ~, ~] = fileparts(mfilename('fullpath')); % .m/.py must be in the same path.
-pyfile = [p, '/arctanAD.py'];
+pyfile = [p, '/arctanAD_spgr.py'];
 
 pyExec = char(pyenv().Executable);
 cmd = [pyExec, ' ', pyfile, ' ', m2pName, ' ', p2mName, ' ', num2str(gpuID)];
