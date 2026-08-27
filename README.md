@@ -38,8 +38,20 @@ sequence. Use `adpulses.optimizers.arctanLBFGS_spgr` (Python) or
 `arctanLBFGS` / `adpulses.opt.arctanAD`. `demo/demo_ss.m` gives a worked
 comparison of a regular design against a steady-state design.
 
-This feature accompanies a technical note currently under review at
-*Magnetic Resonance in Medicine*; a citation will be added once available.
+This feature accompanies the following [paper](https://onlinelibrary.wiley.com/doi/10.1002/mrm.70573) in *Magnetic Resonance in
+Medicine*:
+
+```bib
+@article{he2026ssadp,
+  author={He, Yongli and Noll, Douglas C. and Nielsen, Jon-Fredrik},
+  journal={Magnetic Resonance in Medicine},
+  title={Improved Accuracy of Multidimensional Spatially-Selective Saturation RF Pulses for Short-Repetition-Time Steady-State Imaging},
+  year={2026},
+  volume={},
+  number={},
+  pages={},
+  doi={10.1002/mrm.70573}}
+```
 
 ## System Requirements:
 - Python `≥3.8`.
